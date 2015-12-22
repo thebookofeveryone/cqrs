@@ -7,8 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thebookofeveryone/cqrs/uid"
+	"github.com/satori/go.uuid"
 )
+
+func GenerateUUID() string {
+	return uuid.NewV4().String()
+}
 
 type Event struct {
 	Version   string
@@ -43,7 +47,7 @@ func (a *AggregateRoot) ClearChanges() {
 func (a *AggregateRoot) Source(originalEvent interface{}) error {
 	eventType := reflect.TypeOf(originalEvent)
 	event := Event{
-		uid.GetId(),
+		GenerateUUID(),
 		time.Now().Unix(),
 		eventType.Name(),
 		originalEvent}
