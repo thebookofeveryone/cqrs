@@ -1,8 +1,11 @@
 package main
 
-import "./cqrs"
-import "./uid"
-import "errors"
+import (
+	"errors"
+
+	"github.com/thebookofeveryone/cqrs/cqrs"
+	"github.com/thebookofeveryone/cqrs/uid"
+)
 import "fmt"
 
 type Thing struct {

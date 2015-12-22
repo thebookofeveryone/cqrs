@@ -1,12 +1,13 @@
 package cqrs
 
 import (
-	"../uid"
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/thebookofeveryone/cqrs/uid"
 )
 
 type Event struct {
