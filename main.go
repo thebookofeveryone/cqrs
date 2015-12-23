@@ -2,11 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/thebookofeveryone/cqrs/cqrs"
-	"github.com/thebookofeveryone/cqrs/uid"
 )
-import "fmt"
 
 type Thing struct {
 	cqrs.AggregateRoot
@@ -23,7 +22,7 @@ type ThingRepository struct {
 }
 
 func NewThing(name string) Thing {
-	id := uid.GetId()
+	id := cqrs.GenerateUUID()
 	thing := Thing{}
 	thing.AggregateRoot = cqrs.NewAggregateRoot(&thing)
 	thing.Source(CreateEvent{id, name})
