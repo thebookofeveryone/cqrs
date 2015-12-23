@@ -27,4 +27,5 @@ build:
       name: Coveralls.io
       code: |-
         go get github.com/mattn/goveralls
+        go get github.com/axw/gocov/gocov
         goveralls -package="./..." -service='wercker.com' $COVERALLS_TOKEN
