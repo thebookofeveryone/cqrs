@@ -5,20 +5,18 @@ build:
     # at the right place in the workspace tree
     - setup-go-workspace
 
-      # Gets the dependencies
+    # Gets the dependencies
     - script:
       name: go get
       code: |
         go get
 
-        # Build the project
+    # Build the project
     - script:
       name: go build
       code: |
         go build ./...
 
-        # Test the project
-    - script:
-      name: go test
-      code: |
-        go test ./...
+    # Test the project
+    - tcnksm/goveralls:
+      token: $COVERALLS_TOKEN
