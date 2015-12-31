@@ -59,12 +59,24 @@ func TestAggregateRoot(t *testing.T) {
 
 	user := User{}
 	root := cqrs.NewAggregateRoot(&user)
+
 	root.Source(UserCreatedEvent{"John"})
 	if user.Name != "John" {
 		t.Fail()
 	}
+
 	root.Source(UserNameChangedEvent{"Mark"})
 	if user.Name != "Mark" {
 		t.Fail()
 	}
+
+	if len(root.Changes) != 2 {
+		t.Fail()
+	}
+
+	root.ClearChanges()
+	if len(root.Changes) != 0 {
+		t.Fail()
+	}
+
 }
