@@ -38,6 +38,14 @@ func NewAggregateRoot(source interface{}) AggregateRoot {
 	return a
 }
 
+func NewAggregateRootFromHistory(source interface{}, history []Event) AggregateRoot {
+	a := NewAggregateRoot(source)
+	for _, event := range history {
+		a.dispatchEvent(event.Payload)
+	}
+	return a
+}
+
 func (a *AggregateRoot) ClearChanges() {
 	a.Changes = make(map[string]Event)
 }
@@ -52,12 +60,16 @@ func NewEvent(originalEvent interface{}) Event {
 }
 
 func (a *AggregateRoot) Source(originalEvent interface{}) error {
-	eventType := reflect.TypeOf(originalEvent)
 	event := NewEvent(originalEvent)
-	if val, ok := a.handlers[eventType]; ok {
-		val(originalEvent)
-	}
+	a.dispatchEvent(originalEvent)
 	a.Changes[event.Version] = event
+	return nil
+}
+
+func (a *AggregateRoot) dispatchEvent(event interface{}) error {
+	if val, ok := a.handlers[reflect.TypeOf(event)]; ok {
+		val(event)
+	}
 	return nil
 }
 
