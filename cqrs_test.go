@@ -80,3 +80,22 @@ func TestAggregateRoot(t *testing.T) {
 	}
 
 }
+
+func TestAggregateRootFromHistory(t *testing.T) {
+
+	user := User{}
+	history := []cqrs.Event{
+		cqrs.NewEvent(UserCreatedEvent{"John"}),
+		cqrs.NewEvent(UserNameChangedEvent{"Mark"})}
+
+	root := cqrs.NewAggregateRootFromHistory(&user, history)
+
+	if user.Name != "Mark" {
+		t.Fatal("User name not up to date", user.Name)
+	}
+
+	if len(root.Changes) != 0 {
+		t.Fail()
+	}
+
+}
