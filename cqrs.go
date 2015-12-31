@@ -1,8 +1,6 @@
 package cqrs
 
 import (
-	"encoding/json"
-	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -44,19 +42,22 @@ func (a *AggregateRoot) ClearChanges() {
 	a.Changes = make(map[string]Event)
 }
 
-func (a *AggregateRoot) Source(originalEvent interface{}) error {
+func NewEvent(originalEvent interface{}) Event {
 	eventType := reflect.TypeOf(originalEvent)
-	event := Event{
+	return Event{
 		GenerateUUID(),
 		time.Now().Unix(),
 		eventType.Name(),
 		originalEvent}
+}
+
+func (a *AggregateRoot) Source(originalEvent interface{}) error {
+	eventType := reflect.TypeOf(originalEvent)
+	event := NewEvent(originalEvent)
 	if val, ok := a.handlers[eventType]; ok {
 		val(originalEvent)
 	}
 	a.Changes[event.Version] = event
-	serialised, _ := json.Marshal(event)
-	fmt.Println(string(serialised))
 	return nil
 }
 
@@ -85,24 +86,33 @@ func (a *AggregateRoot) RegisterHandlers(source interface{}) {
 }
 
 type Handlers map[reflect.Type][]func(interface{})
+type GlobalHandler func(interface{})
+type GlobalHandlers []GlobalHandler
 
 type Bus struct {
-	handlers Handlers
+	handlers       Handlers
+	globalHandlers GlobalHandlers
 }
 
 func NewBus() Bus {
-	return Bus{make(Handlers)}
+	return Bus{make(Handlers), make(GlobalHandlers, 0)}
 }
 
 func (b Bus) Publish(message interface{}) error {
 	eventType := reflect.TypeOf(message)
-	fmt.Println("Publishing...", eventType)
 	if val, ok := b.handlers[eventType]; ok {
 		for _, handler := range val {
 			handler(message)
 		}
 	}
+	for _, handler := range b.globalHandlers {
+		handler(message)
+	}
 	return nil
+}
+
+func (b *Bus) AddGlobalHandler(handler GlobalHandler) {
+	b.globalHandlers = append(b.globalHandlers, handler)
 }
 
 func (b *Bus) addHandler(eventType reflect.Type, handler func(interface{})) {
