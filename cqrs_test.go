@@ -2,7 +2,7 @@ package cqrs_test
 
 import (
 	"fmt"
-	_ "testing"
+	"testing"
 
 	"github.com/thebookofeveryone/cqrs"
 )
@@ -41,4 +41,30 @@ func ExampleGlobalHandlers() {
 	// Output:
 	// [LOG] cqrs_test.UserCreatedEvent: {John}
 	// [LOG] cqrs_test.UserNameChangedEvent: {Mark}
+}
+
+type User struct {
+	Name string
+}
+
+func (u *User) HandleUserCreatedEvent(e UserCreatedEvent) {
+	u.Name = e.Name
+}
+
+func (u *User) HandleUserNameChanchedEvent(e UserNameChangedEvent) {
+	u.Name = e.NewName
+}
+
+func TestAggregateRoot(t *testing.T) {
+
+	user := User{}
+	root := cqrs.NewAggregateRoot(&user)
+	root.Source(UserCreatedEvent{"John"})
+	if user.Name != "John" {
+		t.Fail()
+	}
+	root.Source(UserNameChangedEvent{"Mark"})
+	if user.Name != "Mark" {
+		t.Fail()
+	}
 }

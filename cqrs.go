@@ -1,8 +1,6 @@
 package cqrs
 
 import (
-	"encoding/json"
-	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -60,8 +58,6 @@ func (a *AggregateRoot) Source(originalEvent interface{}) error {
 		val(originalEvent)
 	}
 	a.Changes[event.Version] = event
-	serialised, _ := json.Marshal(event)
-	fmt.Println(string(serialised))
 	return nil
 }
 
