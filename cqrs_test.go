@@ -7,36 +7,38 @@ import (
 	"github.com/thebookofeveryone/cqrs"
 )
 
-type SomethingDoneEvent struct {
-	Value string
+type UserCreatedEvent struct {
+	Name string
+}
+
+type UserNameChangedEvent struct {
+	NewName string
 }
 
 type Handlers struct {
 }
 
-func (h *Handlers) HandleSomethingDoneEvent(e SomethingDoneEvent) {
-	fmt.Println("Handled", e.Value)
+func (h *Handlers) HandleUserCreatedEvent(e UserCreatedEvent) {
+	fmt.Println("User created:", e.Name)
 }
 
 func ExampleHandlers() {
 	bus := cqrs.NewBus()
 	handlers := Handlers{}
 	bus.RegisterHandlers(&handlers)
-	bus.Publish(SomethingDoneEvent{"Test"})
+	bus.Publish(UserCreatedEvent{"John"})
 	// Output:
-	// Handled Test
+	// User created: John
 }
 
 func ExampleGlobalHandlers() {
 	bus := cqrs.NewBus()
 	bus.AddGlobalHandler(func(e interface{}) {
-		switch e.(type) {
-		case SomethingDoneEvent:
-			fmt.Printf("[LOG] SomethingDoneEvent: %s\n",
-				e.(SomethingDoneEvent).Value)
-		}
+		fmt.Printf("[LOG] %T: %v\n", e, e)
 	})
-	bus.Publish(SomethingDoneEvent{"Test"})
+	bus.Publish(UserCreatedEvent{"John"})
+	bus.Publish(UserNameChangedEvent{"Mark"})
 	// Output:
-	// [LOG] SomethingDoneEvent: Test
+	// [LOG] cqrs_test.UserCreatedEvent: {John}
+	// [LOG] cqrs_test.UserNameChangedEvent: {Mark}
 }
