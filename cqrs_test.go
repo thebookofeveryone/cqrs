@@ -29,8 +29,6 @@ func ExampleHandlers() {
 
 func ExampleGlobalHandlers() {
 	bus := cqrs.NewBus()
-	handlers := Handlers{}
-	bus.RegisterHandlers(&handlers)
 	bus.AddGlobalHandler(func(e interface{}) {
 		switch e.(type) {
 		case SomethingDoneEvent:
@@ -40,6 +38,5 @@ func ExampleGlobalHandlers() {
 	})
 	bus.Publish(SomethingDoneEvent{"Test"})
 	// Output:
-	// Handled Test
 	// [LOG] SomethingDoneEvent: Test
 }
