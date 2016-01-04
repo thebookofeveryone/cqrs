@@ -23,7 +23,8 @@ func (h *Handlers) HandleUserCreatedEvent(e UserCreatedEvent) {
 }
 
 func ExampleHandlers() {
-	bus := cqrs.NewBus()
+	bus := cqrs.NewInMemoryBus()
+	defer bus.Close()
 	handlers := Handlers{}
 	bus.RegisterHandlers(&handlers)
 	bus.Publish(UserCreatedEvent{"John"})
@@ -31,8 +32,31 @@ func ExampleHandlers() {
 	// User created: John
 }
 
+func ExampleInMemoryBus() {
+
+	bus := cqrs.NewInMemoryBus()
+	defer bus.Close()
+
+	bus2 := cqrs.NewInMemoryBus()
+	defer bus2.Close()
+
+	bus2.AddGlobalHandler(func(event interface{}) {
+		fmt.Println("Received:", event.(UserCreatedEvent).Name)
+	})
+
+	handlers := Handlers{}
+	bus.RegisterHandlers(&handlers)
+	bus.Publish(UserCreatedEvent{"John"})
+
+	// Output:
+	// User created: John
+	// Received: John
+
+}
+
 func ExampleGlobalHandlers() {
-	bus := cqrs.NewBus()
+	bus := cqrs.NewInMemoryBus()
+	defer bus.Close()
 	bus.AddGlobalHandler(func(e interface{}) {
 		fmt.Printf("[LOG] %T: %v\n", e, e)
 	})

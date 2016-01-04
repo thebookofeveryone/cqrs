@@ -1,6 +1,7 @@
 package cqrs
 
 import (
+	_ "fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -101,16 +102,68 @@ type Handlers map[reflect.Type][]func(interface{})
 type GlobalHandler func(interface{})
 type GlobalHandlers []GlobalHandler
 
-type Bus struct {
-	handlers       Handlers
-	globalHandlers GlobalHandlers
+type Broker interface {
+	Broadcast(int, interface{}) error
+	Subscribe(func(interface{})) (int, error)
+	Unsubscribe(int) error
 }
 
-func NewBus() Bus {
-	return Bus{make(Handlers), make(GlobalHandlers, 0)}
+type InMemoryBroker struct {
+	subscribers []func(interface{})
+}
+
+func (b *InMemoryBroker) Broadcast(from int, message interface{}) error {
+	for i, subscriber := range b.subscribers {
+		if i == from {
+			continue
+		}
+		subscriber(message)
+	}
+	return nil
+}
+
+func (b *InMemoryBroker) Subscribe(handler func(interface{})) (int, error) {
+	b.subscribers = append(b.subscribers, handler)
+	return len(b.subscribers) - 1, nil
+}
+
+func (b *InMemoryBroker) Unsubscribe(id int) error {
+	b.subscribers = append(b.subscribers[:id], b.subscribers[id+1:]...)
+	return nil
+}
+
+var inMemoryBroker = &InMemoryBroker{make([]func(interface{}), 0)}
+
+type Bus struct {
+	broker         Broker
+	handlers       Handlers
+	globalHandlers GlobalHandlers
+	subscriberId   int
+}
+
+func NewInMemoryBus() *Bus {
+	bus := Bus{inMemoryBroker, make(Handlers), make(GlobalHandlers, 0), 0}
+	bus.subscriberId, _ = bus.broker.Subscribe(func(message interface{}) {
+		bus.Dispatch(message)
+	})
+	return &bus
+}
+
+func NewRedisBus() Bus {
+	return Bus{inMemoryBroker, make(Handlers), make(GlobalHandlers, 0), 0}
 }
 
 func (b Bus) Publish(message interface{}) error {
+	b.Dispatch(message)
+	return b.broker.Broadcast(b.subscriberId, message)
+}
+
+func (b Bus) Close() error {
+	b.broker.Unsubscribe(b.subscriberId)
+	return nil
+}
+
+func (b Bus) Dispatch(message interface{}) error {
 	eventType := reflect.TypeOf(message)
 	if val, ok := b.handlers[eventType]; ok {
 		for _, handler := range val {
