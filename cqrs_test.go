@@ -1,12 +1,11 @@
 package cqrs_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"github.com/boudra/testify/assert"
+	"github.com/boudra/testify/mock"
 	"github.com/thebookofeveryone/cqrs"
 	"github.com/thebookofeveryone/cqrs/redis"
 )
@@ -34,23 +33,6 @@ func (h *Handlers) HandleUserNameChangedEvent(e UserNameChangedEvent) {
 	h.Called(e)
 }
 
-func Eventually(t *testing.T, test func() bool, timeout time.Duration, tick time.Duration) bool {
-	timeoutChannel := time.After(timeout)
-	ticker := time.NewTicker(tick)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			if test() {
-				return true
-			}
-		case <-timeoutChannel:
-			assert.Fail(t, fmt.Sprintf("Timeout of %s reached", timeout))
-			return false
-		}
-	}
-}
-
 func TestHandlers(t *testing.T) {
 	dispatcher := cqrs.NewDispatcher()
 	bus := redis.NewMessageBus("commands", redis.ConnectionOptions{
@@ -65,7 +47,7 @@ func TestHandlers(t *testing.T) {
 	handlers.On("HandleUserCreatedEvent", UserCreatedEvent{"John"}).Once()
 	bus.PublishMessages([]cqrs.Message{
 		cqrs.NewMessage(UserCreatedEvent{"John"})})
-	Eventually(t, func() bool {
+	assert.EventuallyTrue(t, func() bool {
 		return handlers.Name == "John"
 	}, 5*time.Second, 50*time.Millisecond)
 }
