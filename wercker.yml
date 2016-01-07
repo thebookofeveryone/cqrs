@@ -14,7 +14,7 @@ build:
         go get github.com/axw/gocov/gocov
         go get github.com/mattn/goveralls
         go get github.com/modocache/gover
-        go get ./...
+        go get -t ./...
 
     # Build the project
     - script:
