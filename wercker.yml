@@ -11,6 +11,8 @@ build:
     - script:
       name: go get
       code: |
+        go get github.com/axw/gocov/gocov
+        go get github.com/mattn/goveralls
         go get ./...
 
     # Build the project
@@ -20,5 +22,14 @@ build:
         go build ./...
 
     # Test the project
-    - tcnksm/goveralls:
-      token: $COVERALLS_TOKEN
+    - script:
+      name: Test
+      code: |
+        go test --covermode=count -coverprofile=cqrs.coverprofile
+        go test --covermode=count -coverprofile=redis.coverprofile ./redis
+
+    - script:
+      name: Coveralls.io
+      code: |
+        gover
+        goveralls -coverprofile=gover.coverprofile -service=wercker.com -repotoken $COVERALLS_TOKEN
