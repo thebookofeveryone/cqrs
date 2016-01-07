@@ -57,8 +57,9 @@ func TestHandlers(t *testing.T) {
 		Host:     "redis:6379",
 		Password: "",
 		DB:       0,
-	}, dispatcher)
+	})
 	defer bus.Close()
+	bus.DispatchTo(dispatcher)
 	handlers := Handlers{}
 	dispatcher.RegisterHandlers(&handlers)
 	handlers.On("HandleUserCreatedEvent", UserCreatedEvent{"John"}).Once()

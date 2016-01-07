@@ -15,23 +15,20 @@ type ConnectionOptions struct {
 }
 
 type MessageBus struct {
-	channel         string
-	client          *redis.Client
-	stopReceiveLoop chan bool
+	channel string
+	client  *redis.Client
 }
 
-func NewMessageBus(channel string, options ConnectionOptions, dispatcher *cqrs.Dispatcher) *MessageBus {
+func NewMessageBus(channel string, options ConnectionOptions) *MessageBus {
 	bus := MessageBus{channel, redis.NewClient(&redis.Options{
 		Addr:     options.Host,
 		Password: options.Password,
 		DB:       options.DB,
-	}), nil}
-	bus.stopReceiveLoop, _ = bus.ReceiveLoop(dispatcher)
+	})}
 	return &bus
 }
 
 func (b *MessageBus) Close() {
-	b.stopReceiveLoop <- true
 	b.client.Close()
 }
 
@@ -54,7 +51,7 @@ func (b *MessageBus) PublishMessages(messages []cqrs.Message) error {
 	return nil
 }
 
-func (b *MessageBus) ReceiveLoop(dispatcher *cqrs.Dispatcher) (chan bool, error) {
+func (b *MessageBus) DispatchTo(dispatcher *cqrs.Dispatcher) (chan bool, error) {
 	pubsub, err := b.client.Subscribe(b.channel)
 	if err != nil {
 		return nil, err
