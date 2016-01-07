@@ -54,7 +54,7 @@ func Eventually(t *testing.T, test func() bool, timeout time.Duration, tick time
 func TestHandlers(t *testing.T) {
 	dispatcher := cqrs.NewDispatcher()
 	bus := redis.NewMessageBus("commands", redis.ConnectionOptions{
-		Host:     "192.168.99.100:6379",
+		Host:     "redis:6379",
 		Password: "",
 		DB:       0,
 	}, dispatcher)
