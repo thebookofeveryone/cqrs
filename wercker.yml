@@ -13,6 +13,7 @@ build:
       code: |
         go get github.com/axw/gocov/gocov
         go get github.com/mattn/goveralls
+        go get github.com/modocache/gover
         go get ./...
 
     # Build the project
